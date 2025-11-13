@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   LineChart, 
   Line, 
@@ -24,6 +25,9 @@ const departments = [
   'Отдел 11', 'Отдел 12', 'Отдел 13', 'Отдел 14', 'Отдел 15'
 ];
 
+const kpiNames = ['KPI 1', 'KPI 2', 'KPI 3', 'KPI 4', 'KPI 5'];
+const kpiIcons = ['TrendingUp', 'Target', 'Activity', 'BarChart3', 'PieChart'];
+
 const mockData = [
   { date: '05.11', value1: 65, value2: 72, value3: 58, value4: 88, value5: 45 },
   { date: '06.11', value1: 70, value2: 68, value3: 62, value4: 85, value5: 52 },
@@ -34,17 +38,36 @@ const mockData = [
   { date: '11.11', value1: 85, value2: 85, value3: 75, value4: 98, value5: 68 },
 ];
 
-const kpiMetrics = [
-  { name: 'KPI 1', target: 100, current: 85, icon: 'TrendingUp' },
-  { name: 'KPI 2', target: 100, current: 92, icon: 'Target' },
-  { name: 'KPI 3', target: 100, current: 78, icon: 'Activity' },
-  { name: 'KPI 4', target: 100, current: 95, icon: 'BarChart3' },
-  { name: 'KPI 5', target: 100, current: 68, icon: 'PieChart' },
-];
-
 const Index = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedDepartment, setSelectedDepartment] = useState(departments[0]);
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [kpiValues, setKpiValues] = useState<Record<string, number[]>>(() => {
+    const initial: Record<string, number[]> = {};
+    departments.forEach(dept => {
+      initial[dept] = [65, 72, 58, 88, 45];
+    });
+    return initial;
+  });
+
+  const updateKpiValue = (dept: string, kpiIndex: number, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setKpiValues(prev => ({
+      ...prev,
+      [dept]: prev[dept].map((v, i) => i === kpiIndex ? numValue : v)
+    }));
+  };
+
+  const getAverageKpi = () => {
+    const totals = [0, 0, 0, 0, 0];
+    departments.forEach(dept => {
+      kpiValues[dept].forEach((val, idx) => {
+        totals[idx] += val;
+      });
+    });
+    return totals.map(t => Math.round(t / departments.length));
+  };
+
+  const averageKpis = getAverageKpi();
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -55,13 +78,9 @@ const Index = () => {
               KPI Dashboard
             </h1>
             <p className="text-muted-foreground">
-              Мониторинг показателей эффективности
+              Мониторинг 5 показателей от 15 отделов
             </p>
           </div>
-          <Button className="gap-2">
-            <Icon name="Plus" size={20} />
-            Добавить данные
-          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -75,25 +94,25 @@ const Index = () => {
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {kpiMetrics.map((metric, idx) => (
+              {kpiNames.map((name, idx) => (
                 <Card key={idx} className="p-6 hover-scale transition-all">
                   <div className="flex items-center justify-between mb-4">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                      <Icon name={metric.icon} className="text-primary" size={24} />
+                      <Icon name={kpiIcons[idx]} className="text-primary" size={24} />
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
-                      {metric.current}%
+                      {averageKpis[idx]}%
                     </span>
                   </div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                    {metric.name}
+                    {name}
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-2xl font-bold">{metric.current}</span>
-                      <span className="text-muted-foreground">/ {metric.target}</span>
+                      <span className="text-2xl font-bold">{averageKpis[idx]}</span>
+                      <span className="text-muted-foreground">/ 100</span>
                     </div>
-                    <Progress value={metric.current} className="h-2" />
+                    <Progress value={averageKpis[idx]} className="h-2" />
                   </div>
                 </Card>
               ))}
@@ -152,31 +171,72 @@ const Index = () => {
             </div>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-6">15 отделов</h3>
+              <h3 className="text-lg font-semibold mb-6">15 отделов — клик для ввода KPI</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {departments.map((dept, idx) => (
-                  <div 
-                    key={idx}
-                    className="p-4 border border-border rounded-lg hover:border-primary transition-all cursor-pointer hover-scale"
-                    onClick={() => setSelectedDepartment(dept)}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Icon name="Users" className="text-primary" size={20} />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm">{dept}</h4>
-                        <p className="text-xs text-muted-foreground">5 KPI</p>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Progress value={65 + idx * 2} className="h-1.5" />
-                      <p className="text-xs text-right text-muted-foreground">
-                        {65 + idx * 2}% выполнено
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                {departments.map((dept, idx) => {
+                  const avgValue = Math.round(kpiValues[dept].reduce((a, b) => a + b, 0) / 5);
+                  return (
+                    <Dialog key={idx}>
+                      <DialogTrigger asChild>
+                        <div 
+                          className="p-4 border border-border rounded-lg hover:border-primary transition-all cursor-pointer hover-scale"
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Icon name="Users" className="text-primary" size={20} />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-sm">{dept}</h4>
+                              <p className="text-xs text-muted-foreground">5 KPI</p>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Progress value={avgValue} className="h-1.5" />
+                            <p className="text-xs text-right text-muted-foreground">
+                              {avgValue}% среднее
+                            </p>
+                          </div>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-3">
+                            <Icon name="Users" className="text-primary" size={24} />
+                            {dept}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          {kpiNames.map((kpiName, kpiIdx) => (
+                            <div key={kpiIdx} className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                  <Icon name={kpiIcons[kpiIdx]} size={16} />
+                                  {kpiName}
+                                </label>
+                                <span className="text-xs text-muted-foreground">
+                                  {kpiValues[dept][kpiIdx]}%
+                                </span>
+                              </div>
+                              <Input 
+                                type="number" 
+                                min="0"
+                                max="100"
+                                value={kpiValues[dept][kpiIdx]}
+                                onChange={(e) => updateKpiValue(dept, kpiIdx, e.target.value)}
+                                placeholder="Введите значение"
+                              />
+                              <Progress value={kpiValues[dept][kpiIdx]} className="h-2" />
+                            </div>
+                          ))}
+                          <Button className="w-full mt-4">
+                            <Icon name="Save" size={20} className="mr-2" />
+                            Сохранить изменения
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  );
+                })}
               </div>
             </Card>
           </TabsContent>
@@ -193,34 +253,23 @@ const Index = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {kpiMetrics.slice(0, 3).map((metric, idx) => (
-                  <div key={idx} className="p-4 border border-border rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <Icon name={metric.icon} className="text-secondary" size={24} />
-                      <span className="text-lg font-bold">{metric.current}%</span>
-                    </div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{metric.name}</h4>
-                    <Progress value={metric.current} className="h-2" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Ввод данных за сегодня</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {kpiMetrics.map((metric, idx) => (
-                    <div key={idx} className="flex items-center gap-4">
-                      <label className="text-sm font-medium w-24">{metric.name}</label>
-                      <Input type="number" placeholder="Введите значение" className="flex-1" />
-                    </div>
-                  ))}
-                </div>
-                <Button className="w-full md:w-auto">
-                  <Icon name="Save" size={20} className="mr-2" />
-                  Сохранить данные
-                </Button>
-              </div>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={mockData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="value1" fill="hsl(var(--chart-1))" name="План" />
+                  <Bar dataKey="value2" fill="hsl(var(--chart-2))" name="Факт" />
+                </BarChart>
+              </ResponsiveContainer>
             </Card>
           </TabsContent>
 
