@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { 
   LineChart, 
   Line, 
@@ -39,6 +40,7 @@ const mockData = [
 ];
 
 const Index = () => {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [kpiValues, setKpiValues] = useState<Record<string, number[]>>(() => {
@@ -228,7 +230,15 @@ const Index = () => {
                               <Progress value={kpiValues[dept][kpiIdx]} className="h-2" />
                             </div>
                           ))}
-                          <Button className="w-full mt-4">
+                          <Button 
+                            className="w-full mt-4"
+                            onClick={() => {
+                              toast({
+                                title: "Показатели сохранены",
+                                description: `Данные для ${dept} успешно обновлены`,
+                              });
+                            }}
+                          >
                             <Icon name="Save" size={20} className="mr-2" />
                             Сохранить изменения
                           </Button>
