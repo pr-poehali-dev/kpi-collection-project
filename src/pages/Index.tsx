@@ -50,6 +50,13 @@ const Index = () => {
     });
     return initial;
   });
+  const [savedStatus, setSavedStatus] = useState<Record<string, { saved: boolean; date: string }>>(() => {
+    const initial: Record<string, { saved: boolean; date: string }> = {};
+    departments.forEach(dept => {
+      initial[dept] = { saved: false, date: '' };
+    });
+    return initial;
+  });
 
   const updateKpiValue = (dept: string, kpiIndex: number, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -173,6 +180,57 @@ const Index = () => {
             </div>
 
             <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-6">Статус внесения данных</h3>
+              <div className="mb-6 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-semibold">Отдел</th>
+                      <th className="text-center py-3 px-4 font-semibold">Статус</th>
+                      <th className="text-center py-3 px-4 font-semibold">Последнее обновление</th>
+                      <th className="text-center py-3 px-4 font-semibold">Среднее</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {departments.map((dept, idx) => {
+                      const avgValue = Math.round(kpiValues[dept].reduce((a, b) => a + b, 0) / 5);
+                      const status = savedStatus[dept];
+                      return (
+                        <tr key={idx} className="border-b border-border hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <Icon name="Users" className="text-primary" size={16} />
+                              <span className="font-medium">{dept}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            {status.saved ? (
+                              <div className="inline-flex items-center gap-1 px-3 py-1 bg-success/20 text-success rounded-full text-xs font-medium">
+                                <Icon name="CheckCircle2" size={14} />
+                                Сохранено
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1 px-3 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
+                                <Icon name="Clock" size={14} />
+                                Ожидание
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center text-muted-foreground">
+                            {status.date || '—'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Progress value={avgValue} className="h-1.5 w-16" />
+                              <span className="text-xs font-medium">{avgValue}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
               <h3 className="text-lg font-semibold mb-6">15 отделов — клик для ввода KPI</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {departments.map((dept, idx) => {
@@ -233,6 +291,17 @@ const Index = () => {
                           <Button 
                             className="w-full mt-4"
                             onClick={() => {
+                              const now = new Date();
+                              const dateStr = now.toLocaleString('ru-RU', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              });
+                              setSavedStatus(prev => ({
+                                ...prev,
+                                [dept]: { saved: true, date: dateStr }
+                              }));
                               toast({
                                 title: "Показатели сохранены",
                                 description: `Данные для ${dept} успешно обновлены`,
