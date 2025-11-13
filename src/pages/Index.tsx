@@ -25,8 +25,8 @@ const departments = [
   'Отдел 11', 'Отдел 12', 'Отдел 13', 'Отдел 14', 'Отдел 15'
 ];
 
-const kpiNames = ['KPI 1', 'KPI 2', 'KPI 3', 'KPI 4', 'KPI 5'];
-const kpiIcons = ['TrendingUp', 'Target', 'Activity', 'BarChart3', 'PieChart'];
+const kpiNames = ['ТО', 'СК', 'ПК', 'Лиды', 'Услуги'];
+const kpiIcons = ['Wrench', 'Building2', 'ShoppingBag', 'UserPlus', 'Briefcase'];
 
 const mockData = [
   { date: '05.11', value1: 65, value2: 72, value3: 58, value4: 88, value5: 45 },
